@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from typing import Any
 
 from .config import env
@@ -22,12 +23,20 @@ class KiwoomService:
     @staticmethod
     def _client():
         try:
+            # pydantic-settings는 .env를 읽지만 외부 라이브러리의 환경에는
+            # 자동 전파하지 않는다. 키움 공식 변수명으로 명시적으로 전달한다.
+            os.environ.setdefault("KIWOOM_MODE", env.kiwoom_mode)
+            if env.app_key:
+                os.environ.setdefault("APP_KEY", env.app_key)
+            if env.app_secret:
+                os.environ.setdefault("APP_SECRET", env.app_secret)
             from kiwoom import get_client
 
             return get_client()
         except Exception as exc:
             raise KiwoomUnavailable(
-                "키움 인증이 없습니다. 먼저 `kiwoomcli setup`으로 운영 프로필을 연결하세요."
+                "키움 인증에 실패했습니다. .env의 운영용 APP_KEY/APP_SECRET을 확인하거나 "
+                "`kiwoomcli setup`으로 운영 프로필을 연결하세요."
             ) from exc
 
     def fetch(self, api_id: str, path: str, body: dict[str, Any]) -> dict[str, Any]:
