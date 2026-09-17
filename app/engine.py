@@ -28,11 +28,9 @@ class TradingEngine:
             "last_scan": self.last_scan,
         }
 
-    def arm(self, phrase: str) -> None:
+    def arm(self) -> None:
         if not env.live_trading:
             raise ValueError(".env에서 LIVE_TRADING=true로 설정해야 합니다.")
-        if phrase != env.live_confirm_phrase:
-            raise ValueError("확인 문구가 일치하지 않습니다.")
         self.armed = True
 
     def disarm(self) -> None:
@@ -119,6 +117,7 @@ class TradingEngine:
             "stock_code": item["stock_code"], "stock_name": item["stock_name"],
             "exchange": settings.exchange, "quantity": quantity, "average_price": item["price"],
             "stop_loss_rate": settings.stop_loss_rate, "level": settings.applied_level,
+            "position_rate": round(settings.applied_level / settings.max_positions, 2),
             "nxt_enabled": 1 if str(detail.get("nxtEnable", "")).upper() in {"Y", "1", "TRUE"} else 0,
             "opened_at": datetime.now(KST).isoformat(), "order_no": order_no,
         })
@@ -165,6 +164,7 @@ class TradingEngine:
             "stock_code": position["stock_code"], "stock_name": position["stock_name"],
             "quantity": position["quantity"], "entry_price": position["average_price"],
             "stop_loss_rate": position["stop_loss_rate"], "level": position["level"],
+            "position_rate": position["position_rate"],
             "entered_at": position["opened_at"], "exit_reason": reason,
             "order_no": order_no, "submitted_at": datetime.now(KST).isoformat(),
         })
@@ -191,6 +191,7 @@ class TradingEngine:
                     stock_code=item["stock_code"], stock_name=item["stock_name"],
                     entry_price=item["entry_price"], exit_price=parse_number(fill.get("sel_avg_pric")),
                     quantity=item["quantity"], exit_reason=item["exit_reason"], level=item["level"],
+                    position_rate=item["position_rate"],
                     stop_loss_rate=item["stop_loss_rate"], entered_at=datetime.fromisoformat(item["entered_at"]),
                     exited_at=datetime.fromisoformat(item["submitted_at"]),
                 ))
