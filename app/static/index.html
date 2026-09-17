@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d10">
+  <title>S1 System</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">S1</span><div><strong>S1 SYSTEM</strong><small>상한가 실행 시스템</small></div></div>
+      <div class="engine-state"><span id="status-dot" class="status-dot"></span><span id="engine-label">엔진 정지</span><span class="clock" id="clock"></span></div>
+    </header>
+
+    <main>
+      <section class="hero-grid">
+        <article class="mode-card card">
+          <div class="eyebrow">CURRENT MODE</div>
+          <div class="mode-row"><span id="current-level" class="mode-number">90</span><span class="percent">%</span></div>
+          <p id="recommendation-copy">성과 데이터를 확인하는 중</p>
+          <div class="level-control" aria-label="실제 적용 비중">
+            <button data-level="90">90%</button><button data-level="180">180%</button><button data-level="270">270%</button>
+          </div>
+        </article>
+
+        <article class="today-card card">
+          <div class="eyebrow">TODAY</div>
+          <div class="stats-grid">
+            <div><strong id="today-count">0</strong><span>거래</span></div>
+            <div><strong id="today-winrate">0%</strong><span>승률</span></div>
+            <div><strong id="today-expectancy">0%</strong><span>기대값</span></div>
+            <div><strong id="today-pnl">0원</strong><span>실현손익</span></div>
+          </div>
+          <div class="result-strip" id="result-strip"><span class="empty-copy">거래가 기록되면 결과가 표시됩니다</span></div>
+        </article>
+
+        <article class="control-card card">
+          <div class="eyebrow">EXECUTION</div>
+          <div class="execution-status"><strong id="execution-title">안전 잠금</strong><span id="execution-detail">운영 주문 비활성</span></div>
+          <div class="button-stack">
+            <button class="primary" id="start-button">엔진 시작</button>
+            <button class="danger" id="arm-button">실주문 활성화</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="card performance-card">
+          <div class="section-head"><div><div class="eyebrow">RECENT PERFORMANCE</div><h2>전략 상태</h2></div><div class="window-tabs"><button data-window="recent5">5회</button><button class="active" data-window="recent10">10회</button><button data-window="recent20">20회</button></div></div>
+          <div class="performance-summary">
+            <div><span>승률</span><strong id="recent-winrate">0%</strong></div>
+            <div><span>평균 수익</span><strong id="recent-win">0%</strong></div>
+            <div><span>평균 손실</span><strong id="recent-loss">0%</strong></div>
+            <div><span>기대값</span><strong id="recent-expectancy">0%</strong></div>
+          </div>
+          <canvas id="equity-chart" width="900" height="240" aria-label="누적 손익 곡선"></canvas>
+        </article>
+
+        <article class="card settings-card">
+          <div class="section-head"><div><div class="eyebrow">STRATEGY SETTINGS</div><h2>매매 조건</h2></div><button class="ghost" id="save-button">설정 저장</button></div>
+          <form id="settings-form">
+            <label>진입 등락률<div class="input-wrap"><input name="entry_rate" type="number" step="0.1"><span>%</span></div></label>
+            <label>손절률<div class="input-wrap"><input name="stop_loss_rate" type="number" step="0.1"><span>%</span></div></label>
+            <label>최소 거래대금<div class="input-wrap"><input name="min_turnover_eok" type="number"><span>억</span></div></label>
+            <label>최소 시가총액<div class="input-wrap"><input name="min_market_cap_eok" type="number"><span>억</span></div></label>
+            <label>시작시간<div class="input-wrap"><input name="trading_start" type="time"></div></label>
+            <label>종료시간<div class="input-wrap"><input name="trading_end" type="time"></div></label>
+            <label>익일 청산<select name="exit_session"><option>AUTO</option><option>NXT</option><option>KRX</option></select></label>
+            <label>동시 보유<select name="max_positions"><option>1</option><option>2</option><option>3</option></select></label>
+          </form>
+        </article>
+      </section>
+
+      <section class="card candidates-card">
+        <div class="section-head"><div><div class="eyebrow">LIVE SCANNER</div><h2>진입 후보</h2></div><button class="ghost" id="scan-button">지금 스캔</button></div>
+        <div class="table-scroll"><table><thead><tr><th>종목</th><th>현재가</th><th>등락률</th><th>거래대금</th><th>시가총액</th><th>판정</th></tr></thead><tbody id="candidate-body"><tr><td colspan="6" class="empty-cell">키움 연결 후 스캔할 수 있습니다</td></tr></tbody></table></div>
+      </section>
+
+      <section class="card trades-card">
+        <div class="section-head"><div><div class="eyebrow">TRADE LOG</div><h2>최근 거래</h2></div></div>
+        <div class="table-scroll"><table><thead><tr><th>청산일</th><th>종목</th><th>비중</th><th>손절 기준</th><th>청산 사유</th><th>수익률</th><th>실현손익</th></tr></thead><tbody id="trade-body"><tr><td colspan="7" class="empty-cell">아직 기록된 거래가 없습니다</td></tr></tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="arm-dialog">
+    <form method="dialog" id="arm-form"><div class="dialog-mark">!</div><h3>실제 주문을 활성화할까요?</h3><p>활성화하면 조건 충족 시 키움 실계좌로 주문이 전송됩니다. 아래에 <b>S1 LIVE</b>를 입력하세요.</p><input id="arm-phrase" autocomplete="off" placeholder="S1 LIVE"><div class="dialog-actions"><button value="cancel" class="ghost">취소</button><button value="default" class="danger" id="confirm-arm">실주문 활성화</button></div></form>
+  </dialog>
+  <div id="toast" role="status"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
+
