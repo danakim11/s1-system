@@ -10,7 +10,6 @@ class Environment(BaseSettings):
     app_key: str = ""
     app_secret: str = ""
     live_trading: bool = False
-    live_confirm_phrase: str = "S1 LIVE"
     kiwoom_trading_value_unit_won: int = 1_000_000
     s1_db_path: str = "data/s1.db"
 
