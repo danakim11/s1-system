@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from .db import db
 from .engine import engine
 from .kiwoom_service import KiwoomUnavailable
-from .models import ArmRequest, StrategySettings, TradeCreate
+from .models import StrategySettings, TradeCreate
 from .strategy import recommend_level, summarize
 
 app = FastAPI(title="S1 System", version="0.1.0")
@@ -60,7 +60,7 @@ def scan():
 
 
 @app.post("/api/engine/start")
-def start_engine():
+async def start_engine():
     engine.start()
     return engine.status()
 
@@ -72,9 +72,9 @@ def stop_engine():
 
 
 @app.post("/api/engine/arm")
-def arm_engine(request: ArmRequest):
+def arm_engine():
     try:
-        engine.arm(request.phrase)
+        engine.arm()
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc
     return engine.status()
@@ -84,4 +84,3 @@ def arm_engine(request: ArmRequest):
 def disarm_engine():
     engine.disarm()
     return engine.status()
-
