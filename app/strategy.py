@@ -8,14 +8,15 @@ from .models import StrategySettings
 KST = ZoneInfo("Asia/Seoul")
 
 
-def parse_number(value: object) -> float:
+def parse_number(value: object, *, absolute: bool = True) -> float:
     if value is None:
         return 0.0
     text = str(value).strip().replace(",", "").replace("+", "")
     if not text:
         return 0.0
     try:
-        return abs(float(text))
+        number = float(text)
+        return abs(number) if absolute else number
     except (TypeError, ValueError):
         return 0.0
 
@@ -94,4 +95,3 @@ def in_trading_window(settings: StrategySettings, now: datetime | None = None) -
 def position_budget(equity: float, applied_level: int, max_positions: int, available: float) -> float:
     target = equity * applied_level / 100 / max_positions
     return max(0, min(target, available))
-

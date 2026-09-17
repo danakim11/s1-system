@@ -32,8 +32,8 @@ class TradeCreate(BaseModel):
     entry_price: float = Field(gt=0)
     exit_price: float = Field(gt=0)
     quantity: int = Field(gt=0)
-    exit_reason: Literal["STOP_LOSS", "NEXT_DAY_OPEN", "MANUAL"] = "MANUAL"
-    level: Literal[10, 90, 180, 270] = 10
+    exit_reason: Literal["STOP_LOSS", "NEXT_DAY_OPEN", "MANUAL", "BROKER_EXIT"] = "MANUAL"
+    level: Literal[10, 20, 90, 180, 270] = 10
     position_rate: float | None = Field(None, gt=0, le=270)
     stop_loss_rate: float = Field(gt=0, le=10)
     entered_at: datetime

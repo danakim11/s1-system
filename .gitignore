@@ -1,4 +1,8 @@
 .env
+.env.*
+!.env.example
+.idea/
+*.log
 .venv/
 __pycache__/
 *.py[cod]
@@ -6,4 +10,3 @@ __pycache__/
 data/
 .pytest_cache/
 .DS_Store
-

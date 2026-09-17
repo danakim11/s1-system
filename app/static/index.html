@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0d10">
   <title>S1 System</title>
-  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg?v=rose-pink-2">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -22,7 +22,7 @@
           <div class="mode-row"><span id="current-level" class="mode-number">90</span><span class="percent">%</span></div>
           <p id="recommendation-copy">성과 데이터를 확인하는 중</p>
           <div class="level-control" aria-label="실제 적용 비중">
-            <button data-level="90">90%</button><button data-level="180">180%</button><button data-level="270">270%</button>
+            <button data-level="10">10%</button><button data-level="90">90%</button><button data-level="180">180%</button><button data-level="270">270%</button>
           </div>
         </article>
 
@@ -56,7 +56,10 @@
             <div><span>평균 손실</span><strong id="recent-loss">0%</strong></div>
             <div><span>기대값</span><strong id="recent-expectancy">0%</strong></div>
           </div>
-          <canvas id="equity-chart" width="900" height="240" aria-label="누적 손익 곡선"></canvas>
+          <div class="curve-heading"><div><h3>거래 수익 곡선</h3><small id="curve-period-label">전체 청산 거래 · 누적 실현손익 · 원 기준</small></div><strong id="curve-total">0원</strong></div>
+          <div class="curve-period"><button class="ghost active" data-curve-days="0">전체</button><button class="ghost" data-curve-days="7">7일</button><button class="ghost" data-curve-days="30">30일</button><button class="ghost" data-curve-days="90">90일</button><form id="curve-days-form"><input id="curve-days" type="number" min="1" max="36500" step="1" placeholder="일수" aria-label="조회 일수" required><button class="ghost" type="submit">적용</button></form></div>
+          <canvas id="equity-chart" width="900" height="240" aria-label="전체 거래의 누적 실현손익 곡선"></canvas>
+          <p id="curve-detail" class="empty-copy" role="status">청산 거래가 기록되면 표시됩니다.</p>
         </article>
 
         <article class="card settings-card">
@@ -75,8 +78,21 @@
       </section>
 
       <section class="card candidates-card">
+        <div class="section-head"><h2>보유 · 매수 대기</h2></div>
+        <div class="table-scroll"><table><thead><tr><th>상태</th><th>종목</th><th>수량</th><th>금액</th><th>안내</th></tr></thead><tbody id="order-state-body"></tbody></table></div>
+        <p id="order-state-note" class="empty-copy">실제 체결된 수량만 보유로 표시합니다.</p>
+      </section>
+
+      <section class="card candidates-card">
         <div class="section-head"><div><div class="eyebrow">LIVE SCANNER</div><h2>진입 후보</h2></div><button class="ghost" id="scan-button">지금 스캔</button></div>
+        <p id="scan-status" class="empty-copy">전체 후보 조회 대기 · 30초마다 갱신</p>
         <div class="table-scroll"><table><thead><tr><th>종목</th><th>현재가</th><th>등락률</th><th>거래대금</th><th>시가총액</th><th>판정</th></tr></thead><tbody id="candidate-body"><tr><td colspan="6" class="empty-cell">키움 연결 후 스캔할 수 있습니다</td></tr></tbody></table></div>
+      </section>
+
+      <section class="card candidates-card">
+        <div class="section-head calendar-heading"><h2>조건 충족 달력</h2><div class="calendar-nav"><button class="ghost" id="history-prev" aria-label="이전 달">‹</button><input id="candidate-history-month" type="month" aria-label="조회 월"><button class="ghost" id="history-next" aria-label="다음 달">›</button></div></div>
+        <p id="history-status" class="empty-copy" role="status"></p>
+        <div class="calendar-scroll"><div id="candidate-calendar" class="candidate-calendar" aria-label="월간 조건 충족 종목"></div></div>
       </section>
 
       <section class="card trades-card">
@@ -86,11 +102,8 @@
     </main>
   </div>
 
-  <dialog id="arm-dialog">
-    <form method="dialog" id="arm-form"><div class="dialog-mark">!</div><h3>실제 주문을 활성화할까요?</h3><p>활성화하면 조건 충족 시 키움 실계좌로 주문이 전송됩니다. 아래에 <b>S1 LIVE</b>를 입력하세요.</p><input id="arm-phrase" autocomplete="off" placeholder="S1 LIVE"><div class="dialog-actions"><button value="cancel" class="ghost">취소</button><button value="default" class="danger" id="confirm-arm">실주문 활성화</button></div></form>
-  </dialog>
+  <dialog id="stock-chart-dialog" class="stock-chart-dialog"><div class="section-head"><h3 id="stock-chart-title">종목 차트</h3><button id="stock-chart-close" class="ghost" aria-label="차트 닫기">닫기</button></div><p id="stock-chart-subtitle"></p><canvas id="stock-chart" aria-label="최근 60거래일 일봉 및 거래량 차트"></canvas><p id="stock-chart-detail" role="status"></p></dialog>
   <div id="toast" role="status"></div>
   <script src="/static/app.js"></script>
 </body>
 </html>
-
