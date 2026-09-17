@@ -35,6 +35,7 @@ class Database:
                   stock_code TEXT NOT NULL, stock_name TEXT NOT NULL,
                   entry_price REAL NOT NULL, exit_price REAL NOT NULL, quantity INTEGER NOT NULL,
                   exit_reason TEXT NOT NULL, level INTEGER NOT NULL, stop_loss_rate REAL NOT NULL,
+                  position_rate REAL NOT NULL DEFAULT 90,
                   entered_at TEXT NOT NULL, exited_at TEXT NOT NULL,
                   return_pct REAL NOT NULL, realized_pnl REAL NOT NULL
                 );
@@ -42,6 +43,7 @@ class Database:
                   stock_code TEXT PRIMARY KEY, stock_name TEXT NOT NULL, exchange TEXT NOT NULL,
                   quantity INTEGER NOT NULL, average_price REAL NOT NULL, stop_loss_rate REAL NOT NULL,
                   level INTEGER NOT NULL, nxt_enabled INTEGER NOT NULL DEFAULT 0,
+                  position_rate REAL NOT NULL DEFAULT 90,
                   opened_at TEXT NOT NULL, order_no TEXT
                 );
                 CREATE TABLE IF NOT EXISTS blocked_entries (
@@ -51,11 +53,23 @@ class Database:
                 CREATE TABLE IF NOT EXISTS pending_exits (
                   stock_code TEXT PRIMARY KEY, stock_name TEXT NOT NULL, quantity INTEGER NOT NULL,
                   entry_price REAL NOT NULL, stop_loss_rate REAL NOT NULL, level INTEGER NOT NULL,
+                  position_rate REAL NOT NULL DEFAULT 90,
                   entered_at TEXT NOT NULL, exit_reason TEXT NOT NULL, order_no TEXT,
                   submitted_at TEXT NOT NULL
                 );
                 """
             )
+            for table in ("trades", "positions", "pending_exits"):
+                if self._add_column_if_missing(conn, table, "position_rate", "REAL NOT NULL DEFAULT 90"):
+                    conn.execute(f"UPDATE {table} SET position_rate=level")
+
+    @staticmethod
+    def _add_column_if_missing(conn: sqlite3.Connection, table: str, column: str, definition: str) -> bool:
+        columns = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in columns:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+            return True
+        return False
 
     def get_settings(self) -> StrategySettings:
         with self.connect() as conn:
@@ -78,11 +92,12 @@ class Database:
         with self.connect() as conn:
             cur = conn.execute(
                 """INSERT INTO trades(stock_code,stock_name,entry_price,exit_price,quantity,
-                exit_reason,level,stop_loss_rate,entered_at,exited_at,return_pct,realized_pnl)
-                VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
+                exit_reason,level,stop_loss_rate,position_rate,entered_at,exited_at,return_pct,realized_pnl)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (
                     trade.stock_code, trade.stock_name, trade.entry_price, trade.exit_price, trade.quantity,
-                    trade.exit_reason, trade.level, trade.stop_loss_rate, trade.entered_at.isoformat(),
+                    trade.exit_reason, trade.level, trade.stop_loss_rate, trade.applied_position_rate,
+                    trade.entered_at.isoformat(),
                     trade.exited_at.isoformat(), trade.return_pct, trade.realized_pnl,
                 ),
             )
@@ -99,7 +114,7 @@ class Database:
         return [dict(row) for row in rows]
 
     def upsert_position(self, row: dict) -> None:
-        keys = ["stock_code", "stock_name", "exchange", "quantity", "average_price", "stop_loss_rate", "level", "nxt_enabled", "opened_at", "order_no"]
+        keys = ["stock_code", "stock_name", "exchange", "quantity", "average_price", "stop_loss_rate", "level", "position_rate", "nxt_enabled", "opened_at", "order_no"]
         with self.connect() as conn:
             conn.execute(
                 f"INSERT OR REPLACE INTO positions({','.join(keys)}) VALUES({','.join('?' for _ in keys)})",
@@ -122,7 +137,7 @@ class Database:
         return bool(row)
 
     def add_pending_exit(self, row: dict) -> None:
-        keys = ["stock_code", "stock_name", "quantity", "entry_price", "stop_loss_rate", "level", "entered_at", "exit_reason", "order_no", "submitted_at"]
+        keys = ["stock_code", "stock_name", "quantity", "entry_price", "stop_loss_rate", "level", "position_rate", "entered_at", "exit_reason", "order_no", "submitted_at"]
         with self.connect() as conn:
             conn.execute(
                 f"INSERT OR REPLACE INTO pending_exits({','.join(keys)}) VALUES({','.join('?' for _ in keys)})",
