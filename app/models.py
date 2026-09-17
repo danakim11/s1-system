@@ -12,8 +12,8 @@ class StrategySettings(BaseModel):
     trading_start: str = "08:00"
     trading_end: str = "20:00"
     exit_session: Literal["AUTO", "NXT", "KRX"] = "AUTO"
-    applied_level: Literal[90, 180, 270] = 90
-    max_positions: int = Field(1, ge=1, le=10)
+    applied_level: Literal[10, 90, 180, 270] = 10
+    max_positions: int = Field(2, ge=1, le=10)
     scan_interval_seconds: int = Field(3, ge=1, le=60)
     exchange: Literal["SOR", "KRX", "NXT"] = "SOR"
 
@@ -33,7 +33,8 @@ class TradeCreate(BaseModel):
     exit_price: float = Field(gt=0)
     quantity: int = Field(gt=0)
     exit_reason: Literal["STOP_LOSS", "NEXT_DAY_OPEN", "MANUAL"] = "MANUAL"
-    level: Literal[90, 180, 270] = 90
+    level: Literal[10, 90, 180, 270] = 10
+    position_rate: float | None = Field(None, gt=0, le=270)
     stop_loss_rate: float = Field(gt=0, le=10)
     entered_at: datetime
     exited_at: datetime
@@ -46,7 +47,6 @@ class TradeCreate(BaseModel):
     def realized_pnl(self) -> float:
         return round((self.exit_price - self.entry_price) * self.quantity)
 
-
-class ArmRequest(BaseModel):
-    phrase: str
-
+    @property
+    def applied_position_rate(self) -> float:
+        return self.position_rate if self.position_rate is not None else float(self.level)
