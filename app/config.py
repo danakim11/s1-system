@@ -7,6 +7,8 @@ class Environment(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     kiwoom_mode: str = "real"
+    app_key: str = ""
+    app_secret: str = ""
     live_trading: bool = False
     live_confirm_phrase: str = "S1 LIVE"
     kiwoom_trading_value_unit_won: int = 1_000_000
@@ -18,4 +20,3 @@ class Environment(BaseSettings):
 
 
 env = Environment()
-
